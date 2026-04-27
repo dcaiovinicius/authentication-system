@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Auth System · JWT Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+        }
+
+        /* main container */
+        .app-container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1F2B48, #2C3E66);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .auth-header p {
+            color: #5a687c;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #e9ecef;
+            border-radius: 40px;
+            padding: 0.25rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.75rem;
+        }
+
+        /* card grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.8rem;
+        }
+
+        @media (max-width: 780px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            body {
+                padding: 1.2rem;
+            }
+        }
+
+        /* card style */
+        .card {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(0px);
+            border-radius: 32px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+            padding: 1.6rem 1.8rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.12);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e2a3e;
+            margin-bottom: 1rem;
+            letter-spacing: -0.2px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.8rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4b5a6e;
+            margin-bottom: 0.3rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 20px;
+            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+
+        button {
+            background: #1f2a48;
+            color: white;
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: transform 0.1s ease, background 0.2s;
+            margin-top: 0.5rem;
+            margin-right: 0.6rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        button.primary {
+            background: #2563eb;
+        }
+
+        button.primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        button.secondary {
+            background: #4b5563;
+        }
+
+        button.secondary:hover {
+            background: #374151;
+        }
+
+        button.warning {
+            background: #dc2626;
+        }
+
+        button.warning:hover {
+            background: #b91c1c;
+        }
+
+        .token-area {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 1rem;
+            margin: 1.2rem 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .token-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #2c3e66;
+            margin-bottom: 0.25rem;
+        }
+
+        .message {
+            margin-top: 1rem;
+            padding: 0.7rem;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        .message.success {
+            background: #e0f2fe;
+            border-left-color: #0ea5e9;
+            color: #075985;
+        }
+
+        .user-profile {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #eef2ff;
+        }
+
+        .flex-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: none;
+            border-top: 1px solid #e2edf2;
+        }
+
+        .code-snip {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            overflow-x: auto;
+        }
+
+        footer {
+            margin-top: 2.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #5f6c80;
+        }
+
+        .inline-icon {
+            font-weight: bold;
+            background: #eef2ff;
+            border-radius: 30px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="auth-header">
+        <h1>🔐 Auth System · JWT Playground</h1>
+        <p>Manage authentication, tokens & user session — powered by Go + JWT API</p>
+        <div class="status-badge" id="apiStatus">🟡 Checking API...</div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- LEFT COLUMN: Authentication forms (Register / Login / Refresh) -->
+        <div>
+            <!-- REGISTER CARD -->
+            <div class="card">
+                <h2>📝 1. Register</h2>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" placeholder="user@example.com" autocomplete="email">
+                </div>
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="regUsername" placeholder="cool_user">
+                </div>
+                <div class="input-group">
+                    <label>Password (min 8 chars)</label>
+                    <input type="password" id="regPassword" placeholder="••••••••">
+                </div>
+                <button class="primary" id="registerBtn">✨ Register & Login</button>
+                <div id="registerMessage" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- LOGIN CARD -->
+            <div class="card">
+                <h2>🔑 2. Login</h2>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="user@example.com">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="password">
+                </div>
+                <button class="primary" id="loginBtn">▶ Sign In</button>
+                <div id="loginMessage" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- REFRESH TOKEN CARD -->
+            <div class="card">
+                <h2>🔄 3. Refresh tokens</h2>
+                <p style="font-size: 0.8rem; margin-bottom: 12px;">Use current refresh token to get a new pair (rotation)</p>
+                <div class="input-group">
+                    <label>Refresh Token</label>
+                    <textarea id="refreshTokenInput" rows="2" placeholder="Paste refresh token here..."></textarea>
+                </div>
+                <button id="refreshBtn" class="secondary">⟳ Renew Access Token</button>
+                <div id="refreshMessage" class="message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Session, User info & Logout -->
+        <div>
+            <!-- Token status & stored session card -->
+            <div class="card">
+                <h2>🎫 Active Session</h2>
+                <div class="token-area">
+                    <div class="token-label">📌 Access Token (JWT)</div>
+                    <div id="displayAccessToken" style="word-break: break-all; font-size: 0.7rem;">— none —</div>
+                </div>
+                <div class="token-area">
+                    <div class="token-label">🔁 Refresh Token (stored)</div>
+                    <div id="displayRefreshToken" style="word-break: break-all; font-size: 0.7rem;">— none —</div>
+                </div>
+                <div class="flex-btns">
+                    <button id="logoutBtn" class="warning">🚪 Logout (revoke)</button>
+                    <button id="clearStorageBtn" class="secondary" style="background:#64748b;">🗑 Clear local tokens</button>
+                </div>
+                <div id="logoutMessage" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- USER INFO card (protected) -->
+            <div class="card">
+                <h2>👤 Protected Profile</h2>
+                <div class="flex-btns" style="margin-bottom: 1rem;">
+                    <button id="fetchUserBtn" class="primary">📡 Get my info (GET /users)</button>
+                </div>
+                <div id="userInfoDisplay" class="user-profile" style="background:#f1f5f9;">
+                    <span style="color:#2d3a4b;">ℹ️ Click "Get my info" to load profile using access token</span>
+                </div>
+                <hr>
+                <div class="code-snip">
+                    ⚡ Token lifecycle: Access (24h) | Refresh (7d) | Auto-rotation on /refresh
+                </div>
+            </div>
+
+            <!-- quick guide & status -->
+            <div class="card">
+                <h2>📘 API Quick actions</h2>
+                <p style="margin-bottom: 8px;">All endpoints comply with your Go spec:</p>
+                <ul style="margin-left: 1.2rem; color: #334155; font-size: 0.85rem;">
+                    <li><strong>POST /api/v1/register</strong> → returns tokens</li>
+                    <li><strong>POST /api/v1/login</strong> → returns tokens</li>
+                    <li><strong>POST /api/v1/refresh</strong> → revokes old, issues new</li>
+                    <li><strong>GET /api/v1/users</strong> → requires Bearer token</li>
+                    <li><strong>POST /api/v1/logout</strong> → revokes refresh token</li>
+                </ul>
+                <div id="globalError" style="margin-top: 12px; font-size:0.75rem; color:#b91c1c;"></div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        🧪 JWT playground — Connect to backend at <span id="apiBaseUrl">http://localhost:8080</span> · Ensure API is running
+    </footer>
+</div>
+
+<script>
+    // ---------- CONFIGURATION ----------
+    // API base URL - change if your backend runs on different port/host
+    const API_BASE = 'http://localhost:8080/api/v1';
+    // helper to update global API status indicator
+    const apiStatusSpan = document.getElementById('apiStatus');
+    const globalErrorSpan = document.getElementById('globalError');
+
+    // Helper: Handle fetch errors and display global error
+    async function apiRequest(endpoint, method, body = null, token = null) {
+        const url = `${API_BASE}${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        const options = {
+            method: method,
+            headers: headers,
+        };
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+        try {
+            const response = await fetch(url, options);
+            let data = null;
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+            }
+            // handle non-2xx responses
+            if (!response.ok) {
+                const errorMsg = data?.error || data?.message || `HTTP ${response.status}`;
+                return { ok: false, status: response.status, error: errorMsg, data };
+            }
+            return { ok: true, status: response.status, data };
+        } catch (err) {
+            console.error('Network error:', err);
+            let friendly = err.message;
+            if (err instanceof TypeError && err.message.includes('fetch')) {
+                friendly = `⚠️ Cannot connect to API at ${API_BASE}. Is the Go server running? (${err.message})`;
+            }
+            return { ok: false, error: friendly, network: true };
+        }
+    }
+
+    // Storage keys
+    const STORAGE_ACCESS = 'auth_access_token';
+    const STORAGE_REFRESH = 'auth_refresh_token';
+
+    function saveTokens(accessToken, refreshToken) {
+        if (accessToken) localStorage.setItem(STORAGE_ACCESS, accessToken);
+        if (refreshToken) localStorage.setItem(STORAGE_REFRESH, refreshToken);
+        updateTokenDisplay();
+    }
+
+    function getAccessToken() {
+        return localStorage.getItem(STORAGE_ACCESS);
+    }
+
+    function getRefreshToken() {
+        return localStorage.getItem(STORAGE_REFRESH);
+    }
+
+    function clearTokens() {
+        localStorage.removeItem(STORAGE_ACCESS);
+        localStorage.removeItem(STORAGE_REFRESH);
+        updateTokenDisplay();
+    }
+
+    function updateTokenDisplay() {
+        const access = getAccessToken();
+        const refresh = getRefreshToken();
+        document.getElementById('displayAccessToken').innerText = access ? (access.length > 80 ? access.substring(0, 70) + '…' : access) : '— none —';
+        document.getElementById('displayRefreshToken').innerText = refresh ? (refresh.length > 80 ? refresh.substring(0, 70) + '…' : refresh) : '— none —';
+        if (refresh) {
+            document.getElementById('refreshTokenInput').value = refresh;
+        } else {
+            document.getElementById('refreshTokenInput').value = '';
+        }
+    }
+
+    // display helper for message divs
+    function showMessage(elementId, text, isError = false) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.style.display = 'block';
+        el.innerText = text;
+        el.className = `message ${isError ? 'error' : 'success'}`;
+        setTimeout(() => {
+            if (el) el.style.display = 'none';
+        }, 5000);
+    }
+
+    // Generic after register / login store tokens
+    function handleTokenResponse(data, successMsg, successDiv, errorDiv) {
+        if (data && data.access_token && data.refresh_token) {
+            saveTokens(data.access_token, data.refresh_token);
+            showMessage(successDiv, successMsg + ' Tokens stored.', false);
+            if (errorDiv) showMessage(errorDiv, '', false);
+            return true;
+        } else {
+            const errText = data?.error || 'Missing tokens in response';
+            showMessage(successDiv, errText, true);
+            return false;
+        }
+    }
+
+    // --- CHECK API health & CORS friendly ---
+    async function checkApiHealth() {
+        try {
+            // just a simple options or test endpoint
+            const res = await fetch(`${API_BASE}/register`, { method: 'OPTIONS' });
+            if (res.ok || res.status === 405 || res.status === 400) {
+                apiStatusSpan.innerHTML = '🟢 API reachable';
+                apiStatusSpan.style.background = '#dcfce7';
+                apiStatusSpan.style.color = '#166534';
+            } else {
+                apiStatusSpan.innerHTML = '🟠 API responded but check CORS';
+            }
+        } catch (e) {
+            apiStatusSpan.innerHTML = '🔴 Cannot reach API (start backend on :8080)';
+            apiStatusSpan.style.background = '#fee2e2';
+            apiStatusSpan.style.color = '#991b1b';
+            globalErrorSpan.innerText = '❌ Backend connection failed: make sure Go server runs on port 8080.';
+        }
+    }
+
+    // REGISTER action
+    document.getElementById('registerBtn').addEventListener('click', async () => {
+        const email = document.getElementById('regEmail').value.trim();
+        const username = document.getElementById('regUsername').value.trim();
+        const password = document.getElementById('regPassword').value;
+        if (!email || !username || !password) {
+            showMessage('registerMessage', 'All fields (email, username, password) are required', true);
+            return;
+        }
+        if (password.length < 8) {
+            showMessage('registerMessage', 'Password must be at least 8 characters', true);
+            return;
+        }
+        const result = await apiRequest('/register', 'POST', { email, username, password });
+        if (result.ok && result.data) {
+            handleTokenResponse(result.data, '✅ Registration successful!', 'registerMessage', null);
+            // also clear registration fields optionally
+            document.getElementById('regPassword').value = '';
+        } else {
+            showMessage('registerMessage', result.error || 'Registration failed', true);
+        }
+    });
+
+    // LOGIN action
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        if (!email || !password) {
+            showMessage('loginMessage', 'Email and password required', true);
+            return;
+        }
+        const result = await apiRequest('/login', 'POST', { email, password });
+        if (result.ok && result.data) {
+            handleTokenResponse(result.data, 'Login successful!', 'loginMessage', null);
+            document.getElementById('loginPassword').value = '';
+        } else {
+            showMessage('loginMessage', result.error || 'Invalid credentials', true);
+        }
+    });
+
+    // REFRESH token endpoint
+    document.getElementById('refreshBtn').addEventListener('click', async () => {
+        let refreshToken = document.getElementById('refreshTokenInput').value.trim();
+        if (!refreshToken) {
+            refreshToken = getRefreshToken();
+            if (!refreshToken) {
+                showMessage('refreshMessage', 'No refresh token provided. Please login first or paste refresh token.', true);
+                return;
+            }
+        }
+        const result = await apiRequest('/refresh', 'POST', { refresh_token: refreshToken });
+        if (result.ok && result.data && result.data.access_token && result.data.refresh_token) {
+            saveTokens(result.data.access_token, result.data.refresh_token);
+            showMessage('refreshMessage', '🔄 Tokens refreshed & rotated! Old refresh token revoked.', false);
+        } else {
+            let errMsg = result.error || 'Refresh failed, token may be expired or revoked';
+            if (result.status === 401) errMsg = 'Refresh token expired or invalid. Please login again.';
+            showMessage('refreshMessage', errMsg, true);
+            if (result.status === 401) {
+                clearTokens();
+                updateTokenDisplay();
+            }
+        }
+    });
+
+    // FETCH USER / protected endpoint
+    document.getElementById('fetchUserBtn').addEventListener('click', async () => {
+        const access = getAccessToken();
+        if (!access) {
+            showMessage('userInfoDisplay', '❌ No access token. Please login or register first.', true);
+            document.getElementById('userInfoDisplay').innerHTML = '<span style="color:#b91c1c;">⚠️ Unauthorized: missing token</span>';
+            return;
+        }
+        const result = await apiRequest('/users', 'GET', null, access);
+        if (result.ok && result.data) {
+            const user = result.data;
+            const displayHtml = `
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <div><strong>🆔 ID:</strong> ${user.id || '—'}</div>
+                    <div><strong>📧 Email:</strong> ${user.email || '—'}</div>
+                    <div><strong>👤 Username:</strong> ${user.username || '—'}</div>
+                    <div><span class="inline-icon">✔️ Authenticated via JWT</span></div>
+                </div>
+            `;
+            document.getElementById('userInfoDisplay').innerHTML = displayHtml;
+            showMessage('userInfoDisplay', '', false);
+        } else {
+            let errorMsg = result.error || 'Could not fetch user data';
+            if (result.status === 401) errorMsg = 'Token invalid or expired. Please login again.';
+            document.getElementById('userInfoDisplay').innerHTML = `<span style="color:#dc2626;">⚠️ ${errorMsg}</span>`;
+            if (result.status === 401) {
+                // optional: clear bad token?
+                // clearTokens(); // but maybe keep refresh? better ask user
+                showMessage('globalError', 'Access token expired — use refresh or re-login', true);
+            }
+        }
+    });
+
+    // LOGOUT: revoke refresh token on backend
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        const access = getAccessToken();
+        if (!access) {
+            clearTokens();
+            showMessage('logoutMessage', 'Already logged out locally.', false);
+            document.getElementById('userInfoDisplay').innerHTML = '<span>ℹ️ No active session. Please login.</span>';
+            return;
+        }
+        const result = await apiRequest('/logout', 'POST', null, access);
+        if (result.ok) {
+            clearTokens();
+            showMessage('logoutMessage', '✅ Logout successful: refresh token revoked on server.', false);
+            document.getElementById('userInfoDisplay').innerHTML = '<span>🔒 Session ended. Use Register/Login again.</span>';
+        } else {
+            // even if backend fails, clear local maybe but inform
+            clearTokens();
+            showMessage('logoutMessage', `⚠️ Local tokens cleared, but server response: ${result.error || 'unknown'}.`, true);
+        }
+    });
+
+    // clear storage manually
+    document.getElementById('clearStorageBtn').addEventListener('click', () => {
+        clearTokens();
+        document.getElementById('userInfoDisplay').innerHTML = '<span>🗑️ Local tokens cleared. Session removed.</span>';
+        showMessage('logoutMessage', 'Local storage cleared (tokens deleted).', false);
+        document.getElementById('refreshTokenInput').value = '';
+    });
+
+    // Update token display on load and store refresh token field sync
+    window.addEventListener('DOMContentLoaded', () => {
+        updateTokenDisplay();
+        checkApiHealth();
+        // set base url hint
+        document.getElementById('apiBaseUrl').innerText = API_BASE.replace('/api/v1', '');
+        // prefill refresh textarea if exists
+        const storedRefresh = getRefreshToken();
+        if (storedRefresh) document.getElementById('refreshTokenInput').value = storedRefresh;
+    });
+
+    // optional: monitor token changes in other tabs not needed
+</script>
+</body>
+</html>
