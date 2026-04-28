@@ -7,9 +7,8 @@ down:
 test-unit:
 	go test -v tests/*_test.go
 
-test-integration:
-	go test -v tests/integration/*_test.go
-
+integration-test:
+	ENV=test go test -v tests/integration/*_test.go
 migrate:
 	migrate -path infra/migrations -database "postgres://postgres:secret@localhost:5432/auth?sslmode=disable" -verbose up
 
