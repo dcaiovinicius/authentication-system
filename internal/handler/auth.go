@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type registerRequest struct {
+type RegisterRequest struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -26,12 +26,12 @@ type refreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-type authResponse struct {
+type AuthResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
-type errorResponse struct {
+type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
@@ -50,7 +50,7 @@ func NewAuthHandler(authService *auth.AuthService, refreshTokenRepo repository.R
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var req registerRequest
+	var req RegisterRequest
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -63,12 +63,12 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	token, refreshToken, err := h.authService.Register(r.Context(), req.Email, req.Username, req.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
+		json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(authResponse{
+	json.NewEncoder(w).Encode(AuthResponse{
 		AccessToken:  token,
 		RefreshToken: refreshToken,
 	})
@@ -88,11 +88,11 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	token, refreshToken, err := h.authService.Authenticate(r.Context(), req.Email, req.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
+		json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(authResponse{
+	json.NewEncoder(w).Encode(AuthResponse{
 		AccessToken:  token,
 		RefreshToken: refreshToken,
 	})
@@ -112,11 +112,11 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	token, refreshToken, err := h.authService.Refresh(r.Context(), req.RefreshToken)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
+		json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(authResponse{
+	json.NewEncoder(w).Encode(AuthResponse{
 		AccessToken:  token,
 		RefreshToken: refreshToken,
 	})
@@ -140,7 +140,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	err = h.refreshTokenRepo.RevokeByUserID(r.Context(), userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorResponse{Error: "failed to logout"})
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "failed to logout"})
 		return
 	}
 

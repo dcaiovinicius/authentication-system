@@ -14,6 +14,7 @@ type Config struct {
 	DefaultPort string
 	JWTIssuer   string
 	RootPath    string
+	Environment string
 }
 
 func findProjectRoot() string {
@@ -49,5 +50,6 @@ func LoadConfig() *Config {
 		DefaultPort: os.Getenv("DefaultPort"),
 		JWTIssuer:   jwtIssuer,
 		RootPath:    root,
+		Environment: os.Getenv("ENV"),
 	}
 }
