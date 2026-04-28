@@ -4,8 +4,11 @@ up:
 down:
 	docker compose -f infra/compose.yml down
 
-test:
+test-unit:
 	go test -v tests/*_test.go
+
+test-integration:
+	go test -v tests/integration/*_test.go
 
 migrate:
 	migrate -path infra/migrations -database "postgres://postgres:secret@localhost:5432/auth?sslmode=disable" -verbose up

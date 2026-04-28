@@ -125,7 +125,6 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Get user ID from context (set by JWT middleware)
 	userIDStr := r.Context().Value(middleware.UserIDContextKey)
 	if userIDStr == nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)

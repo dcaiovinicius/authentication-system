@@ -2,19 +2,13 @@ package database
 
 import (
 	"database/sql"
-	"errors"
-	"os"
 
+	"github.com/dcaiovinicius/authentication-system/internal/config"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func Connect() (*sql.DB, error) {
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		return nil, errors.New("DATABASE_URL not set")
-	}
-
-	db, err := sql.Open("pgx", dsn)
+func Connect(cfg *config.Config) (*sql.DB, error) {
+	db, err := sql.Open("pgx", cfg.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}

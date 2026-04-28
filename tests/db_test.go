@@ -1,22 +1,20 @@
 package tests
 
 import (
-	"os"
 	"testing"
 
 	"github.com/dcaiovinicius/authentication-system/infra/database"
+	"github.com/dcaiovinicius/authentication-system/internal/config"
 )
 
-func TestDatabase_NoEnv(t *testing.T) {
-	os.Unsetenv("DATABASE_URL")
+func TestDatabaseConnection(t *testing.T) {
+	cfg := config.LoadConfig()
 
-	_, err := database.Connect()
+	db, err := database.Connect(cfg)
 
-	if err == nil {
-		t.Fatal("expected error, got nil")
+	if err != nil {
+		t.Fatalf("failed to connect to database: %v", err)
 	}
 
-	if err.Error() != "DATABASE_URL not set" {
-		t.Fatalf("expected %q, got %q", "DATABASE_URL not set", err.Error())
-	}
+	defer db.Close()
 }
